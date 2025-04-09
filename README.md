@@ -42,7 +42,7 @@ provider "trocco" {
 
 TROCCOの管理画面から、コピーしたい転送設定と接続情報のIDを確認します。
 
-- 転送設定のID: 転送設定の詳細画面のURLから確認できます。例えば、URLが `https://trocco.io/job-definitions/123` の場合、IDは `123` です。
+- 転送設定のID: 転送設定の詳細画面のURLから確認できます。例えば、URLが `https://trocco.io/job_definitions/123` の場合、IDは `123` です。
 - Salesforce接続情報のID: 接続情報の詳細画面のURLから確認できます。例えば、URLが `https://trocco.io/connections/1` の場合、IDは `1` です。
 - Snowflake接続情報のID: 接続情報の詳細画面のURLから確認できます。例えば、URLが `https://trocco.io/connections/2` の場合、IDは `2` です。
 
