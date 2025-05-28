@@ -1,19 +1,30 @@
-# TROCCOの転送設定をTerraformで別アカウントに移行するサンプル
+# Terraformを活用したTROCCO転送設定の別アカウント移行サンプルコード
 
-このドキュメントでは、TROCCOで作成した既存の転送設定（SalesforceからSnowflakeへのデータ転送）とそのために必要な接続情報をTROCCOの画面上から作成したうえで、それらをTerraformに取り込み、別のTROCCOアカウントに対してTerraform経由で同じ転送設定と接続情報を作成する方法を説明します。
-こうした手順を使うことで、貴社のパートナー検証用環境で作成した設定を、お客様のTROCCO環境にコピーすることができます。
+このドキュメントでは、TROCCOの既存の転送設定（SalesforceからSnowflakeへのデータ転送）と、それに必要な接続情報を、TROCCOの画面で作成済みの状態からTerraformにインポートし、別のTROCCOアカウントに同じ転送設定と接続情報をTerraform経由で再現する方法を説明します。
+この方法を用いると、例えば、開発環境で作成した設定を別アカウントの本番環境へコピーすることが可能になります。
+
+このコードは、目的や環境に合わせて適宜修正し、ご活用ください。
+
+詳細な対応リソースや使用例については、以下リンク先をご確認ください。
+https://registry.terraform.io/providers/trocco-io/trocco/latest/docs
+
+接続情報として利用可能なコネクタは、以下リンク先をご確認ください。
+https://registry.terraform.io/providers/trocco-io/trocco/latest/docs/resources/connection
 
 ## 前提条件
 
 - Terraform（バージョン1.5.0以上）がインストールされていること
-- コピー元とコピー先、両方のTROCCOアカウントのAPIキーを取得していること
 - コピー元のTROCCOアカウントに、SalesforceからSnowflakeへの転送設定と必要な接続情報が作成済みであること
+- コピー元とコピー先、両方のTROCCO APIキーを取得していること
+  ※APIキーの取得方法は[こちら](https://documents.trocco.io/trocco-api/apidocs/overview#trocco-api-key%E3%81%AE%E4%BD%9C%E6%88%90)をご参照ください。
+  ※TROCCO APIは、FreeプランもしくはAdvancedプラン以上でご利用いただけます。詳しくは[こちら](https://primenumber.com/trocco/pricing)をご参照ください。
+
 
 ## 手順
 
 ### 1. コピー元のTROCCOアカウント用のTerraform設定
 
-コピー元のTROCCOアカウントのAPIキーを使用してTerraform providerを設定します。
+コピー元のTROCCOアカウントのAPIキーを使用して、Terraform providerを設定します。
 
 `source/provider.tf`ファイルを作成します：
 
@@ -53,19 +64,19 @@ TROCCOの管理画面から、コピーしたい転送設定と接続情報のID
 ```hcl
 # 転送設定のインポート
 import {
-  id = "123" # コピーしたい転送設定のID。実際に貴社環境に存在するIDに書き換えてください
+  id = "123" # コピーしたい転送設定のID ※貴社環境上に存在するIDに書き換えてください
   to = trocco_job_definition.salesforce_to_snowflake
 }
 
 # Salesforce接続情報のインポート
 import {
-  id = "1" # コピーしたいSalesforce接続情報のID。実際に貴社環境に存在するIDに書き換えてください
+  id = "salesforce.1" # 「コネクタの種類.コピーしたい接続情報のID」です。**お使いの環境のIDに書き換えてください。**
   to = trocco_connection.salesforce
 }
 
 # Snowflake接続情報のインポート
 import {
-  id = "2" # コピーしたいSnowflake接続情報のID。実際に貴社環境に存在するIDに書き換えてください
+  id = "snowflake.2" # 「コネクタの種類.コピーしたい接続情報のID」です。**お使いの環境のIDに書き換えてください。**
   to = trocco_connection.snowflake
 }
 ```
@@ -81,28 +92,27 @@ terraform init
 
 コピー元のTROCCOアカウントのAPIキーを環境変数として設定します。
 
-```bash
+```bash:Mac
 export TF_VAR_trocco_api_key="your-source-api-key"
 ```
 
-### 6. 既存の転送設定と接続情報をTerraformに取り込む
+```bash:Win
+set TF_VAR_trocco_api_key=your-source-api-key
+```
+
+
+### 6. コピー元の転送設定と接続情報をTerraformに取り込む
+
+次のコマンドを実行すると、`resources.tf`ファイルが生成されます。
 
 ```bash
 terraform plan -generate-config-out=resources.tf
 ```
 
-このコマンドを実行すると、`resources.tf`ファイルが生成されます。このファイルには、既存の転送設定と接続情報のTerraformコードが含まれています。
-
-生成されたファイルを確認し、必要に応じて以下のように分割することもできます：
-
-```bash
-# 転送設定と接続情報を別々のファイルに分割する場合
-grep -A 100 "trocco_job_definition" resources.tf > job_definition.tf
-grep -A 100 "trocco_connection.*salesforce" resources.tf > salesforce_connection.tf
-grep -A 100 "trocco_connection.*snowflake" resources.tf > snowflake_connection.tf
-```
+`resources.tf`ファイルには、**コピー元の転送設定と接続情報のTerraformコード**が含まれています。
 
 ### 7. コピー先のTROCCOアカウント用のディレクトリを作成
+
 
 ```bash
 cd ..
@@ -113,15 +123,28 @@ cp source/*.tf destination/
 
 ### 8. コピー先のTROCCOアカウント用に設定を調整
 
-コピー先のTROCCOアカウントでは、接続情報も新たに作成されるため、転送設定内の接続情報IDの参照を更新する必要はありません。ただし、以下の点に注意してください：
+2通りの方法を紹介します。用途に合わせ選択してください。
+
+#### コピー先のTROCCOアカウントで接続情報を新規作成する場合（Terraform経由で作成する方法）
+コピー先のTROCCOアカウントでは、接続情報も新たに作成されます。そのため、転送設定内の接続情報IDの参照を更新する必要はありません。
+ただし、以下の点に注意してください：
 
 1. Salesforceの接続情報に含まれるパスワードやセキュリティトークンなどの機密情報は、セキュリティ上の理由からTerraformのインポート時に空になっている可能性があります。その場合は、コピー先のアカウント用に正しい値を設定してください。
 
 2. Snowflakeの接続情報についても同様に、パスワードなどの機密情報を適切に設定してください。
 
-3. リソースグループIDやラベルなど、アカウント固有の設定がある場合は、コピー先のアカウントに合わせて調整してください。
+3. リソースグループIDやラベルなど、アカウント固有の設定がある場合は、コピー先のアカウントに合わせて`destination/resources.tf`内の記述を調整してください。
+
+
+#### コピー先のTROCCOアカウントに既存の接続情報を利用する場合
+コピー先のTROCCOアカウント上に既に接続情報を作成している場合は、新たに作成される転送設定にその接続情報を反映することが可能です。
+`destination/resources.tf`内で、転送設定から参照する接続情報ID（`_connection_id`）を変更してください。
+
+
 
 ### 9. コピー先のTROCCOアカウントでTerraformを実行
+
+`terraform apply`コマンドを実行すると、コピー先のTROCCOアカウントに転送設定が作成されます。
 
 ```bash
 cd destination
@@ -131,7 +154,6 @@ terraform plan
 terraform apply
 ```
 
-`terraform apply`コマンドを実行すると、コピー先のTROCCOアカウントに転送設定が作成されます。
 
 ## サンプルコード
 
