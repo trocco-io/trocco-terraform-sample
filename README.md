@@ -1,7 +1,6 @@
 # Terraformを活用したTROCCO転送設定の別アカウント移行サンプルコード
 
-このドキュメントでは、TROCCOの既存の転送設定（SalesforceからSnowflakeへのデータ転送）と、それに必要な接続情報を、TROCCOの画面で作成済みの状態からTerraformにインポートし、別のTROCCOアカウントに同じ転送設定と接続情報をTerraform経由で再現する方法を説明します。
-この方法を用いると、例えば、開発環境で作成した設定を別アカウントの本番環境へコピーすることが可能になります。
+このドキュメントでは、TROCCOの既存の転送設定（SalesforceからSnowflakeへのデータ転送）と、それに必要な接続情報を、TROCCOの画面で作成した後、Terraform経由で別のTROCCOアカウントに再現する方法を説明します。
 
 このコードは、目的や環境に合わせて適宜修正し、ご活用ください。
 
@@ -70,13 +69,13 @@ import {
 
 # Salesforce接続情報のインポート
 import {
-  id = "salesforce.1" # 「コネクタの種類.コピーしたい接続情報のID」です。**お使いの環境のIDに書き換えてください。**
+  id = "salesforce,1" # 「コネクタの種類,コピーしたい接続情報のID」です。**お使いの環境のIDに書き換えてください。**
   to = trocco_connection.salesforce
 }
 
 # Snowflake接続情報のインポート
 import {
-  id = "snowflake.2" # 「コネクタの種類.コピーしたい接続情報のID」です。**お使いの環境のIDに書き換えてください。**
+  id = "snowflake,2" # 「コネクタの種類,コピーしたい接続情報のID」です。**お使いの環境のIDに書き換えてください。**
   to = trocco_connection.snowflake
 }
 ```
