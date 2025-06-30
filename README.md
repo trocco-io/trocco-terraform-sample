@@ -87,7 +87,7 @@ cd source
 terraform init
 ```
 
-### 5. 環境変数の設定
+### 5. コピー元TROCCOアカウントのAPIキー設定
 
 コピー元のTROCCOアカウントのAPIキーを環境変数として設定します。
 
@@ -150,14 +150,27 @@ copy source\*.tf destination\
 `destination/resources.tf`内で、転送設定から参照する接続情報ID（`~_connection_id`）を変更してください。
 
 
+### 9. コピー先TROCCOアカウントのAPIキーの設定
 
-### 9. コピー先のTROCCOアカウントでTerraformを実行
+コピー先のTROCCOアカウントのAPIキーを環境変数として設定します。
+※コピー元・コピー先のTROCCOアカウントが同じ場合は、本項目はスキップしてください。
+
+#### Mac
+```bash:Mac
+export TF_VAR_trocco_api_key="your-source-api-key"
+```
+
+#### Win
+```bash:Win
+set TF_VAR_trocco_api_key=your-source-api-key
+```
+
+### 10. コピー先のTROCCOアカウントでTerraformを実行
 
 `terraform apply`コマンドを実行すると、コピー先のTROCCOアカウントに転送設定が作成されます。
 
 ```bash
 cd destination
-export TF_VAR_trocco_api_key="your-destination-api-key"
 terraform init
 terraform plan
 terraform apply
