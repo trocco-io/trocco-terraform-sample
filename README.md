@@ -21,7 +21,7 @@ https://registry.terraform.io/providers/trocco-io/trocco/latest/docs/resources/c
 
 ## 手順
 
-### 1. コピー元のTROCCOアカウント用のTerraform設定
+### 1. コピー元TROCCOアカウント用のTerraform設定
 
 コピー元のTROCCOアカウントのAPIキーを使用して、Terraform providerを設定します。
 
@@ -87,7 +87,7 @@ cd source
 terraform init
 ```
 
-### 5. 環境変数の設定
+### 5. コピー元TROCCOアカウントのAPIキー設定
 
 コピー元のTROCCOアカウントのAPIキーを環境変数として設定します。
 
@@ -112,7 +112,7 @@ terraform plan -generate-config-out=resources.tf
 
 `resources.tf`ファイルには、**コピー元の転送設定と接続情報のTerraformコード**が含まれています。
 
-### 7. コピー先のTROCCOアカウント用のディレクトリを作成
+### 7. コピー先TROCCOアカウント用のディレクトリを作成
 
 ##### Mac
 ```bash
@@ -130,11 +130,11 @@ copy source\provider.tf destination\
 copy source\*.tf destination\
 ```
 
-### 8. コピー先のTROCCOアカウント用に設定を調整
+### 8. コピー先TROCCOアカウント用に設定を調整
 
 2通りの方法を紹介します。用途に合わせ選択してください。
 
-#### コピー先のTROCCOアカウントで接続情報を新規作成する場合（Terraform経由で作成する方法）
+#### コピー先TROCCOアカウントで接続情報を新規作成する場合（Terraform経由で作成する方法）
 コピー先のTROCCOアカウントでは、接続情報も新たに作成されます。そのため、転送設定内の接続情報IDの参照を更新する必要はありません。
 ただし、以下の点に注意してください：
 
@@ -145,19 +145,32 @@ copy source\*.tf destination\
 3. リソースグループIDやラベルなど、アカウント固有の設定がある場合は、コピー先のアカウントに合わせて`destination/resources.tf`内の記述を調整してください。
 
 
-#### コピー先のTROCCOアカウントに既存の接続情報を利用する場合
+#### コピー先TROCCOアカウントに既存の接続情報を利用する場合
 コピー先のTROCCOアカウント上に既に接続情報を作成している場合は、新たに作成される転送設定にその接続情報を反映することが可能です。
 `destination/resources.tf`内で、転送設定から参照する接続情報ID（`~_connection_id`）を変更してください。
 
 
+### 9. コピー先TROCCOアカウントのAPIキーの設定
 
-### 9. コピー先のTROCCOアカウントでTerraformを実行
+コピー先のTROCCOアカウントのAPIキーを環境変数として設定します。
+※コピー元・コピー先のTROCCOアカウントが同じ場合は、本項目はスキップしてください。
+
+#### Mac
+```bash:Mac
+export TF_VAR_trocco_api_key="your-source-api-key"
+```
+
+#### Win
+```bash:Win
+set TF_VAR_trocco_api_key=your-source-api-key
+```
+
+### 10. コピー先TROCCOアカウントでTerraformを実行
 
 `terraform apply`コマンドを実行すると、コピー先のTROCCOアカウントに転送設定が作成されます。
 
 ```bash
 cd destination
-export TF_VAR_trocco_api_key="your-destination-api-key"
 terraform init
 terraform plan
 terraform apply
